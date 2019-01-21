@@ -1,0 +1,16 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="/application.css">
+  </head>
+  <body>
+
+  <% if session[:message] %>
+    <p id="flash_message">
+      <%= session.delete(:message)%>
+    </p>
+  <% end %>
+
+  <%= yield %>
+  <footer><a href="/">Back to index</a></footer>
+  </body>
+</html>

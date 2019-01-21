@@ -1,0 +1,17 @@
+body {
+  padding: 1em;
+  font-family: sans-serif;
+};
+
+#flash_message {
+  padding: 10px;
+  background-color: #FFFF99;
+};
+
+form.inline_form {
+  display: inline;
+};
+
+.hint {
+  color: lightgrey;
+};

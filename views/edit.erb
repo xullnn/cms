@@ -1,0 +1,10 @@
+<form action="/<%= @file %>" method="post" id="edit_file">
+  <label>Edit content of <%= @file %></label>
+  <p><small><em>This version updated at: <%= @version_time %></em></small></p>
+  <div>
+    <textarea cols="60" rows="8" name="content" form="edit_file">
+      <%= @content %>
+    </textarea>
+  </div>
+  <button type="submit" form="edit_file">Save Changes</button>
+</form>

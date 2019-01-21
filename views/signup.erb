@@ -1,0 +1,15 @@
+<form action="/users/signup" method="post">
+  <div>
+    <label>Username</label>
+    <input name="user_name" value="<%= params[:user_name] %>">
+    <em class="hint"><small>(user name should be longer than 3 characters.)</small></em>
+  </div>
+
+  <div>
+    <label>Password</label>
+    <input name="password">
+    <em class="hint"><small>(password should be equal to or longer than 6 characters and should not include space character)</small></em>
+  </div>
+
+  <button type="submit">Sign Up</button>
+</form>
