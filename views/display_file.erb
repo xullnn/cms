@@ -18,7 +18,7 @@
 
 <h4>Version list:</h4>
 <ol>
-  <li><a href="/<%= @file_name %>?version=all">View all in a page.</a></li>
+  <li><a href="/<%= @file_name %>?version=all">View all version in one page.</a></li>
   <% @cmsfile.contents.keys.each do |timestamp| %>
     <li><a href="/<%= @file_name %>?version=<%= timestamp %>"><%= timestamp %></a></li>
   <% end %>

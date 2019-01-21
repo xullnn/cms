@@ -1,4 +1,8 @@
-<ul>
+<h3>CMS App</h3>
+<p id="header_line">-------------------------------------------------------------<p>
+
+<h4>Document List:</h4>
+<ul id="doc_list">
   <% @files.each do |file| %>
     <li><a href="/<%= file %>"><%= file %></a>
       <a href="/<%= file %>/edit">Edit</a>
@@ -12,7 +16,7 @@
   <% end %>
 </ul>
 
-<a href="/files/new">New document</a>
+<a href="/files/new">Create new document</a>
 
 <%= signin_signout_signup_button %>
 <%= upload_image_button %>

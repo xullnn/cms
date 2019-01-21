@@ -75,12 +75,13 @@ post "/files/create" do
   new_name = params[:name].strip
   if invalid_file_name?(new_name)
     session[:message] = "A name is required."
+    erb :new
   else
     file_path = data_path + "/" + new_name
     CMSFile.initialize_empty_file(file_path)
     session[:message] = "#{new_name} was created."
+    redirect "/"
   end
-  redirect "/"
 end
 
 post "/:file_name/duplicate" do
@@ -134,7 +135,7 @@ end
 
 post '/users/signout' do
   session.delete(:signin_as)
-  session[:message] = "You have been signed out."
+  session[:message] = "You have signed out."
   redirect "/"
 end
 
@@ -306,12 +307,13 @@ helpers do
 
   def upload_image_button
     if user_signed_in?
-      "<form action=\"/images/upload\"
+      "<label>Upload Image: </label>
+      <form action=\"/images/upload\"
              method=\"post\"
+             id=\"form_upload_image\"
              enctype=\"multipart/form-data\"
              accept=\"image/png, image/jpeg, image/bmp, image/jpg, image/pdf\">
-        <label>Upload Image</label>
-        <input name=\"image_file\" type=\"file\">
+        <input id=\"btn_upload_image\" name=\"image_file\" type=\"file\">
         <button type=\"submit\">Submit</button>
       </form>"
     end

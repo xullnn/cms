@@ -5,12 +5,16 @@
   <body>
 
   <% if session[:message] %>
-    <p id="flash_message">
+    <p class="message">
       <%= session.delete(:message)%>
     </p>
   <% end %>
 
-  <%= yield %>
-  <footer><a href="/">Back to index</a></footer>
+  <div class="main">
+    <%= yield %>
+  </div>
+
+  <p id="footer_line">-------------------------------------------------------------<p>
+  <footer><a href="/">Back to index page</a></footer>
   </body>
 </html>

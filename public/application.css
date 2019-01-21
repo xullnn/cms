@@ -1,17 +1,39 @@
 body {
   padding: 1em;
   font-family: sans-serif;
-};
+}
 
-#flash_message {
+.message {
   padding: 10px;
   background-color: #FFFF99;
-};
+}
 
 form.inline_form {
   display: inline;
-};
+}
 
 .hint {
   color: lightgrey;
-};
+}
+
+#footer_line, #header_line {
+  color: lightgray;
+}
+
+#btn_upload_image {
+  display: block;
+  padding: 10px 0px;
+}
+
+.main {
+  padding: 20px;
+}
+
+ul#doc_list {
+  list-style-type: square;
+}
+
+#form_upload_image {
+  border-left: 3px solid lightgray;
+  padding-left: 5px;
+}

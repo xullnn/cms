@@ -213,7 +213,7 @@ class TestApp < Minitest::Test
     assert_includes last_response.body, "Signed in as admin"
 
     post "/users/signout"
-    assert_equal "You have been signed out.", session[:message]
+    assert_equal "You have signed out.", session[:message]
 
     get last_response["Location"]
     assert_nil session[:signin_as]
