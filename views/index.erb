@@ -4,7 +4,7 @@
 <h4>Document List:</h4>
 <ul id="doc_list">
   <% @files.each do |file| %>
-    <li><a href="/<%= file %>"><%= file %></a>
+    <li class="doc_item"><a href="/<%= file %>"><%= file %></a>
       <a href="/<%= file %>/edit">Edit</a>
     </li>
     <form class="inline_form" action="/<%= file %>/delete" method="post">

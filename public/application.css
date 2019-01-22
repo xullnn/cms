@@ -26,7 +26,7 @@ form.inline_form {
 }
 
 .main {
-  padding: 20px;
+  padding: 5px 50px;
 }
 
 ul#doc_list {
@@ -36,4 +36,8 @@ ul#doc_list {
 #form_upload_image {
   border-left: 3px solid lightgray;
   padding-left: 5px;
+}
+
+.doc_item {
+  padding: 5px 0px;
 }

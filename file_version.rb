@@ -35,8 +35,8 @@ class CMSFile
   end
 
   def self.initialize_version!(string, path)
-    new_str = format_input(string.strip!)
-    File.open(path, 'w+') { |f| f.write(new_str) }
+    new_str = format_input(string.strip)
+    File.open(path, 'w') { |f| f.write(new_str) }
     File.read(path)
   end
 
@@ -46,6 +46,7 @@ class CMSFile
 
   def self.format_input(content)
     timestamp = format_time(Time.new)
+
     "---\n#{timestamp}\n\n#{content}\n"
   end
 

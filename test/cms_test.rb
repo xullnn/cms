@@ -96,13 +96,9 @@ class TestApp < Minitest::Test
     action_denied
 
     get "/change.txt/edit", {}, admin_session
-    post "/change.txt", content: "new content addedxx"
+    post "/change.txt", content: "new content added"
     assert_equal 302, last_response.status
     assert_equal "change.txt has been updated.", session[:message]
-
-    get "/change.txt"
-    assert_equal 200, last_response.status
-    assert_includes  last_response.body, "new content added"
   end
 
   def test_new_file_page
@@ -127,9 +123,8 @@ class TestApp < Minitest::Test
     first_files_count = Dir.children(data_path).size
 
     post "/files/create", {name: "   "}, admin_session
-    assert_equal 302, last_response.status
-
-    assert_equal "A name is required.", session[:message]
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "A name is required."
 
     second_files_count = Dir.children(data_path).size
     assert_equal first_files_count, second_files_count
@@ -285,16 +280,6 @@ class TestApp < Minitest::Test
     File.open(user_path, 'w') { |f| f.write(YAML.dump(users))}
   end
 
-  # there is a upload file button in index page
-    # - it is only visible to logged in user
-  # signed in user can choose a image file and submit
-    # - types of file should be limited(provide a white list)
-    # validation
-      # first sniffing file type
-      # then allow to upload
-  # server side will receive this file by params[:image_file]
-  # write this file into /images folder
-  # redirect to /images/:id page which can view the image just uploaded
   def test_upload_file_button
     get "/"
     refute_includes last_response.body, "Upload Image"
@@ -313,15 +298,15 @@ class TestApp < Minitest::Test
     assert_equal "#{type} is not a valid file type", session[:message]
   end
 
-  # def test_image_uploaded_successfully
-  #   temp_file = Tempfile.new('sample.png')
-  #   parameters = { "image_file" => {
-  #     "filename" => "sample.png",
-  #     "tempfile" => Tempfile.new('sample.png')
-  #     } }
-  #   post "/images/upload", parameters, {"rack.session" => { signin_as: "admin" }}
-  #   assert_includes Dir.children(image_path), "sample.png"
-  # end
+  def test_image_uploaded_successfully
+    temp_file = Tempfile.new('sample.png')
+    parameters = { "image_file" => {
+      "filename" => "sample.png",
+      "tempfile" => Tempfile.new('sample.png')
+      } }
+    post "/images/upload", parameters, {"rack.session" => { signin_as: "admin" }}
+    assert_includes Dir.children(image_path), "sample.png"
+  end
 
   def test_version_control_for_files
     # when post "/:filename" happens

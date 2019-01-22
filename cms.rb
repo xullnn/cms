@@ -75,9 +75,10 @@ post "/files/create" do
   new_name = params[:name].strip
   if invalid_file_name?(new_name)
     session[:message] = "A name is required."
+    status 422
     erb :new
   else
-    file_path = data_path + "/" + new_name
+    file_path = File.join(data_path, new_name)
     CMSFile.initialize_empty_file(file_path)
     session[:message] = "#{new_name} was created."
     redirect "/"
@@ -163,7 +164,7 @@ post "/images/upload" do
     redirect "/"
   end
   file_path = File.join(image_path, file_name)
-  File.open(file_path, 'w+') { |f| f.write params[:image_file][:tempfile].read }
+  File.open(file_path, 'w+') { |f| f.write params[:image_file][:tempfile] }
   session[:message] = "#{file_name} successfully uploaded, click <a href=\"/images/#{file_name}\" target=\"_blank\">here</a> to view image."
   redirect "/"
 end
