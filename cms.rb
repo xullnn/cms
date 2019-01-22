@@ -60,7 +60,7 @@ post "/:filename" do
     File.open(file_path, 'a') { |f| f.write(CMSFile.format_input(updated_content)) }
   end
   session[:message] = "#{params[:filename]} has been updated."
-  redirect "/"
+  redirect "/#{@file}"
 end
 
 get "/files/new" do
@@ -164,7 +164,7 @@ post "/images/upload" do
     redirect "/"
   end
   file_path = File.join(image_path, file_name)
-  File.open(file_path, 'w+') { |f| f.write params[:image_file][:tempfile] }
+  File.open(file_path, 'w+') { |f| f.write(params[:image_file][:tempfile].read) }
   session[:message] = "#{file_name} successfully uploaded, click <a href=\"/images/#{file_name}\" target=\"_blank\">here</a> to view image."
   redirect "/"
 end
@@ -308,7 +308,8 @@ helpers do
 
   def upload_image_button
     if user_signed_in?
-      "<label>Upload Image: </label>
+      "
+      <label>Upload Image: </label>
       <form action=\"/images/upload\"
              method=\"post\"
              id=\"form_upload_image\"
@@ -316,7 +317,8 @@ helpers do
              accept=\"image/png, image/jpeg, image/bmp, image/jpg, image/pdf\">
         <input id=\"btn_upload_image\" name=\"image_file\" type=\"file\">
         <button type=\"submit\">Submit</button>
-      </form>"
+      </form>
+      "
     end
   end
 end

@@ -299,29 +299,22 @@ class TestApp < Minitest::Test
   end
 
   def test_image_uploaded_successfully
-    temp_file = Tempfile.new('sample.png')
-    parameters = { "image_file" => {
-      "filename" => "sample.png",
-      "tempfile" => Tempfile.new('sample.png')
-      } }
-    post "/images/upload", parameters, {"rack.session" => { signin_as: "admin" }}
+    skip
+    path = File.join(image_path, 'sample.png')
+    post "/images/upload", {"file" => Rack::Test::UploadedFile.new(path, "image/png")}, {"rack.session" => { signin_as: "admin" }}
     assert_includes Dir.children(image_path), "sample.png"
   end
 
   def test_version_control_for_files
-    # when post "/:filename" happens
-      # if content changed, create a new version
-      # if no changes keep same
-      # both scenario should label a new last update time
+    create_document 'sample.txt', "test version control"
 
-      # instead of reading content directly from a file
-      # v0(current version) last updated xxx
-      # "current content here ......"
-        # other versions
-          # v1 (last updated at: 2019-01-01)
-          # v2 (last updated at: 2018-12-01)
-          # v3 (last updated at: 2018-01-01)
-        # click on any version can rerender the content in this page
+    get "/sample.txt"
+    assert_includes last_response.body, "Latest version"
+
+    post "/sample.txt", {content: "new content"}, {"rack.session" => { signin_as: "admin" }}
+    get last_response["Location"]
+
+    assert_equal 2, File.read(File.join(data_path, "/sample.txt")).scan(/\d{4}-.+\:\d{2}/).size
   end
 
 end
