@@ -124,7 +124,7 @@ class TestApp < Minitest::Test
 
     post "/files/create", {name: "   "}, admin_session
     assert_equal 422, last_response.status
-    assert_includes last_response.body, "A name is required."
+    assert_includes last_response.body, "File name cannot be empty."
 
     second_files_count = Dir.children(data_path).size
     assert_equal first_files_count, second_files_count
@@ -204,7 +204,7 @@ class TestApp < Minitest::Test
   end
 
   def test_user_sign_out
-    get "/", {}, {"rack.session" => { signin_as: "admin" }}
+    get "/", {}, admin_session
     assert_includes last_response.body, "Signed in as admin"
 
     post "/users/signout"
@@ -221,10 +221,10 @@ class TestApp < Minitest::Test
     post "/history.txt/duplicate"
     action_denied
 
-    post "/history.txt/duplicate", {}, {"rack.session" => { signin_as: "admin" }}
+    post "/history.txt/duplicate", {}, admin_session
     assert_equal "A duplication of history.txt(history_dup.txt) was created.", session[:message]
 
-    post "/abc.txt/duplicate", {}, {"rack.session" => { signin_as: "admin" }}
+    post "/abc.txt/duplicate", {}, admin_session
     assert_equal "abc.txt is not a valid file name", session[:message]
   end
 
@@ -234,7 +234,7 @@ class TestApp < Minitest::Test
     get "/"
     assert_includes last_response.body, "Signup a new account"
 
-    get "/", {}, {"rack.session" => { signin_as: "admin" }}
+    get "/", {}, admin_session
     refute_includes last_response.body, "Signup a new account"
   end
 
@@ -284,7 +284,7 @@ class TestApp < Minitest::Test
     get "/"
     refute_includes last_response.body, "Upload Image"
 
-    get "/", {}, {"rack.session" => { signin_as: "admin" }}
+    get "/", {}, admin_session
     assert_includes last_response.body, "Upload Image"
   end
 
@@ -293,7 +293,7 @@ class TestApp < Minitest::Test
     parameters = { "image_file" => {
       "filename" => "picture#{type}"
       } }
-    post "/images/upload", parameters, {"rack.session" => { signin_as: "admin" }}
+    post "/images/upload", parameters, admin_session
     assert_equal 302, last_response.status
     assert_equal "#{type} is not a valid file type", session[:message]
   end
@@ -301,7 +301,7 @@ class TestApp < Minitest::Test
   def test_image_uploaded_successfully
     skip
     path = File.join(image_path, 'sample.png')
-    post "/images/upload", {"file" => Rack::Test::UploadedFile.new(path, "image/png")}, {"rack.session" => { signin_as: "admin" }}
+    post "/images/upload", {"file" => Rack::Test::UploadedFile.new(path, "image/png")}, admin_session
     assert_includes Dir.children(image_path), "sample.png"
   end
 
@@ -311,10 +311,15 @@ class TestApp < Minitest::Test
     get "/sample.txt"
     assert_includes last_response.body, "Latest version"
 
-    post "/sample.txt", {content: "new content"}, {"rack.session" => { signin_as: "admin" }}
+    post "/sample.txt", {content: "new content"}, admin_session
     get last_response["Location"]
 
     assert_equal 2, File.read(File.join(data_path, "/sample.txt")).scan(/\d{4}-.+\:\d{2}/).size
   end
 
+  def test_create_invalid_doc_type
+    post "/files/create", { name: 'abc.png' }, admin_session
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, ".png is not a valid type, only accept .md, .txt"
+  end
 end

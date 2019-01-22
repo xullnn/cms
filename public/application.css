@@ -41,3 +41,8 @@ ul#doc_list {
 .doc_item {
   padding: 5px 0px;
 }
+
+#user_status {
+  font-size: 0.6em;
+  color: orange;
+}

@@ -8,7 +8,8 @@ require 'yaml'
 require 'bcrypt'
 require_relative 'file_version'
 
-VALID_FILE_TYPES = ['.png', '.jpg', '.jpeg', '.bmp', '.pdf']
+VALID_IMAGE_TYPES = ['.png', '.jpg', '.jpeg', '.bmp', '.pdf']
+VALID_DOC_TYPES = ['.md', '.txt']
 
 configure do
   enable :sessions
@@ -74,7 +75,6 @@ post "/files/create" do
   headers["Content-Type"] = "text/html; charset=utf-8"
   new_name = params[:name].strip
   if invalid_file_name?(new_name)
-    session[:message] = "A name is required."
     status 422
     erb :new
   else
@@ -159,7 +159,7 @@ end
 post "/images/upload" do
   file_name = params[:image_file][:filename]
   file_type = File.extname(file_name).downcase
-  if !VALID_FILE_TYPES.include?(file_type)
+  if !VALID_IMAGE_TYPES.include?(file_type)
     session[:message] = "#{file_type} is not a valid file type"
     redirect "/"
   end
@@ -259,7 +259,14 @@ def load_user_credentials
 end
 
 def invalid_file_name?(name)
-  name.empty? || File.extname(name).empty?
+  valid_types = VALID_DOC_TYPES.join(', ')
+  if name.empty?
+    session[:message] = "File name cannot be empty."
+  elsif !VALID_DOC_TYPES.include?(File.extname(name))
+    session[:message] = "#{File.extname(name)} is not a valid type, only accept #{valid_types}"
+  else
+    false
+  end
 end
 
 def user_signed_in?
@@ -299,7 +306,7 @@ helpers do
       </form>
       "
     else
-       "<p>Signed in as #{session[:signin_as]}</p>
+       "<p id=\"user_status\">Signed in as #{session[:signin_as]}</p>
        <form action=\"/users/signout\" method=\"post\">
         <button type=\"submit\">Sign out</button>
       </form>"
