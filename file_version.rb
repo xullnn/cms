@@ -21,10 +21,10 @@ class CMSFile
     regexp_for_version = /\d{4}-.+\:\d{2}\b/
     if string.strip == ''
       CMSFile.initialize_empty_file(file_path)
-    elsif !string.match(regexp_for_version) || !string.match(/---\n/)
+    elsif !string.match(regexp_for_version) || !string.match(/------\n/)
       string = CMSFile.initialize_version!(string, file_path)
     end
-    content = string.split("---").map(&:strip)
+    content = string.split("------").map(&:strip)
     content.delete("")
     @contents = content.map do |paragraph|
       parts = paragraph.partition(regexp_for_version)
@@ -47,7 +47,7 @@ class CMSFile
   def self.format_input(content)
     timestamp = format_time(Time.new)
 
-    "---\n#{timestamp}\n\n#{content}\n"
+    "------\n#{timestamp}\n\n#{content}\n"
   end
 
   def latest_content_pair

@@ -40,19 +40,19 @@ so, separate actual file and file displaying
 - format of a file
 
 ```
----
+------
 2003-12-12 09:20:30
 
 This Code of Conduct helps us build a community that is rooted in kindness, collaboration, and mutual respect.
 
 Whether you’ve come to ask questions or to generously share what you know, join us in building a community where all people feel welcome and can participate, regardless of expertise or identity.
 
----
+------
 2004-12-12 09:20:31
 
 Whether you’ve come to ask questions or to generously share what you know, join us in building a community where all people feel welcome and can participate, regardless of expertise or identity.
 
----
+------
 ```
 
 - interfaces
@@ -76,7 +76,7 @@ class CMSFile
   end
 
   def read(string)
-    content = string.split("---").map(&:strip)
+    content = string.split("------").map(&:strip)
     content.delete("")
     @contents = content.map do |paragraph|
       parts = paragraph.partition(/\d{4}-.+\:\d{2}\b/)
@@ -88,7 +88,7 @@ class CMSFile
 
   def render_str(type=:plain)
     plain_text = @contents.map do |timestamp, content|
-      "---\n#{timestamp}\n\n#{content}\n"
+      "------\n#{timestamp}\n\n#{content}\n"
     end.join("\n")
     case type
     when :plain
@@ -104,7 +104,7 @@ class CMSFile
 
   def self.format_input(content)
     timestamp = format_time(Time.new)
-    "---\n#{timestamp}\n#{content}\n"
+    "------\n#{timestamp}\n#{content}\n"
   end
 end
 ```

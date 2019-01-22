@@ -175,11 +175,11 @@ post "/:filename/keep_latest" do
   cmsfile = CMSFile.new.read(File.read(file_path), file_path)
   latest_version_content = cmsfile.latest_content_pair.last
   File.open(file_path, 'w') { |f| f.write(CMSFile.format_input(latest_version_content)) }
-  session[:message] = "Udated successfully, only left latest version."
+  session[:message] = "Udated successfully, only keeping latest version."
   redirect "/#{params[:filename]}"
 end
 
-# ----------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------
 
 def validate_signup_name_and_password(name, password)
   name_error = check_for_name(name)
