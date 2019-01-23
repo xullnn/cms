@@ -299,9 +299,8 @@ class TestApp < Minitest::Test
   end
 
   def test_image_uploaded_successfully
-    skip
     path = File.join(image_path, 'sample.png')
-    post "/images/upload", {"file" => Rack::Test::UploadedFile.new(path, "image/png")}, admin_session
+    post "/images/upload", {"image_file" => Rack::Test::UploadedFile.new(path, "image/png")}, admin_session
     assert_includes Dir.children(image_path), "sample.png"
   end
 
