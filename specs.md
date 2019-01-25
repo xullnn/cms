@@ -54,3 +54,69 @@ Whether you’ve come to ask questions or to generously share what you know, joi
 
 ------
 ```
+
+
+---
+
+
+### Directory based version control
+
+You have a robust versioning system based on the date the file was created. Another possible versioning scheme would be to use numbers. i.e history.txt/1. That way you could simply use the directory structure in the data directory to keep track of the versions. e.g
+
+```
+- data
+    - history.txt
+         - 1
+         - 2
+```
+
+- the real file path
+  - /data/history.txt/1/history.txt
+  - /data/history.txt/2/history.txt
+  - /data/history.txt/3/history.txt
+
+- the path shown in url: /history.txt/1
+
+- create
+  - validate user
+  - render new erb(add content input form)
+  - give file_name
+    - check duplication
+  - create nested dir and file
+    - write in plain txt
+
+- read
+  - get version = params[:file_version]
+  - check if version exists and find it
+  - read string
+  - set content-type to plain, render a template
+
+- edit
+  - validate user
+  - get version = params[:file_name]
+  - check if file exists and find it
+  - load the latest version
+  - render edit form
+
+  - if the submitted content is the same as the last version
+    - flash user, make no additional file
+
+- delete
+  - validate user
+  - delete the whole directory
+    - path: /history.txt/delete
+    - locate dir under /data, delete
+  - delete specific version
+    - path: /history.txt/1/delete
+    - locate dir at /data/history/1, delete
+  - delete old versions
+    - path: history.txt/delete_olds
+    - find the biggest version number
+    - delete all versions except for the latest one
+
+  - duplicate
+    - duplicate the whole nested dir
+    - `mkdir B && touch B/myfile.txt`
+    - /data/history.txt/1/history.txt
+      - two parts of the dirctory need to change
+      - /data/history_dup.txt/1/history_dup.txt
