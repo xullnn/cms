@@ -6,7 +6,7 @@ require 'pry'
 require 'fileutils'
 require 'yaml'
 require 'bcrypt'
-require_relative 'file_version'
+# require_relative 'file_version'
 
 VALID_IMAGE_TYPES = ['.png', '.jpg', '.jpeg', '.bmp', '.pdf']
 VALID_DOC_TYPES = ['.md', '.txt']
