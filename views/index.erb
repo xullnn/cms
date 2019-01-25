@@ -18,5 +18,26 @@
 
 <a href="/files/new">Create new document</a>
 
-<%= signin_signout_signup_button %>
-<%= upload_image_button %>
+<% if !user_signed_in? %>
+  <form action="/users/signin" method="get">
+    <button type="submit">Sign in</button>
+  </form>
+  <form action="/users/signup" method="get">
+    <button type="submit">Signup a new account</button>
+  </form>
+<% else %>
+  <p id="user_status">Signed in as <%= session[:signin_as] %></p>
+  <form action="/users/signout" method="post">
+    <button type="submit">Sign out</button>
+  </form>
+  <!-- Form for uploading image -->
+  <label>Upload Image: </label>
+  <form action="/images/upload"
+         method="post"
+         id="form_upload_image"
+         enctype="multipart/form-data"
+         accept="image/png, image/jpeg, image/bmp, image/jpg, image/pdf">
+    <input id="btn_upload_image" name="image_file" type="file">
+    <button type="submit">Submit</button>
+  </form>
+<% end %>

@@ -28,9 +28,9 @@ get "/:filename" do
   headers["Content-Type"] = "text/html; charset=utf-8"
   file_path = File.join(data_path, params[:filename])
   @file_name = params[:filename]
-  version = params[:version] || 'unspecified'
+  @version = params[:version] || 'unspecified'
   if File.exist?(file_path)
-    load_file_content(file_path, version)
+    @cmsfile = load_file_content(file_path, @version)
     erb :display_file
   else
     session[:message] = "#{params[:filename]} does not exist."
@@ -212,14 +212,13 @@ end
 def load_file_content(file_path, version)
   filetype = File.extname(params[:filename])
   content = File.read(file_path)
-  @cmsfile = CMSFile.new.read(content, file_path)
-  validate_version(version, @cmsfile)
+  cmsfile = CMSFile.new.read(content, file_path)
+  validate_version(version, cmsfile)
   if filetype == '.md'
-    md_contents = @cmsfile.contents.map { |t, text| [t, markdown_to_html(text)] }.to_h
-    @cmsfile.contents = md_contents
+    md_contents = cmsfile.contents.map { |t, text| [t, markdown_to_html(text)] }.to_h
+    cmsfile.contents = md_contents
   end
-  @version = version
-  @cmsfile
+  cmsfile
 end
 
 def validate_version(version, cmsfile)
@@ -292,40 +291,4 @@ end
 
 def session
   last_request.env["rack.session"]
-end
-
-helpers do
-  def signin_signout_signup_button
-    if !user_signed_in?
-      "
-      <form action=\"/users/signin\" method=\"get\">
-        <button type=\"submit\">Sign in</button>
-      </form>
-      <form action=\"/users/signup\" method=\"get\">
-        <button type=\"submit\">Signup a new account</button>
-      </form>
-      "
-    else
-       "<p id=\"user_status\">Signed in as #{session[:signin_as]}</p>
-       <form action=\"/users/signout\" method=\"post\">
-        <button type=\"submit\">Sign out</button>
-      </form>"
-    end
-  end
-
-  def upload_image_button
-    if user_signed_in?
-      "
-      <label>Upload Image: </label>
-      <form action=\"/images/upload\"
-             method=\"post\"
-             id=\"form_upload_image\"
-             enctype=\"multipart/form-data\"
-             accept=\"image/png, image/jpeg, image/bmp, image/jpg, image/pdf\">
-        <input id=\"btn_upload_image\" name=\"image_file\" type=\"file\">
-        <button type=\"submit\">Submit</button>
-      </form>
-      "
-    end
-  end
 end
