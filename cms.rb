@@ -25,7 +25,6 @@ end
 
 post "/files/create" do
   validate_user
-  headers["Content-Type"] = "text/plain; charset=utf-8"
   new_name = params[:name].to_s.strip
   content = params[:content].to_s.strip
   if invalid_file_name?(new_name)
