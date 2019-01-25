@@ -1,5 +1,11 @@
-<label>Add a new document</label>
+<h4>Create new document</h4>
 <form action="/files/create" method="post">
+  <label>File Name: </label>
   <input name="name">
+  <br><br>
+  <label>Content:</label>
+  <div>
+    <textarea cols="100" rows="20" name="content"></textarea>
+  </div>
   <button type="submit">Create</button>
 </form>

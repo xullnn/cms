@@ -19,70 +19,86 @@ end
 get "/" do
   headers["Content-Type"] = "text/html; charset=utf-8"
 
-  pattern = File.join(data_path, "*")
-  @files = Dir.glob(pattern).map { |path| File.basename(path) }
+  @files = Dir.children(data_path)
   erb :index
 end
 
-get "/:filename" do
+post "/files/create" do
+  validate_user
+  headers["Content-Type"] = "text/plain; charset=utf-8"
+  new_name = params[:name].to_s.strip
+  content = params[:content].to_s.strip
+  if invalid_file_name?(new_name)
+    status 422
+    erb :new
+  else
+    create_new_version(new_name, 1, content)
+    session[:message] = "#{new_name} was created."
+    redirect "/files/#{new_name}/1"
+  end
+end
+
+get "/files/:filename/:version" do
   headers["Content-Type"] = "text/html; charset=utf-8"
-  file_path = File.join(data_path, params[:filename])
-  @file_name = params[:filename]
-  @version = params[:version] || 'unspecified'
+  file_name = params[:filename]
+  version = params[:version]
+  file_path = File.join(file_dir(file_name, version), file_name)
   if File.exist?(file_path)
-    @cmsfile = load_file_content(file_path, @version)
-    erb :display_file
+    @content = load_file_content(file_path)
+    @versions = extract_version_and_content(file_name).keys.sort!
+    erb :view
   else
     session[:message] = "#{params[:filename]} does not exist."
     redirect "/"
   end
 end
 
-get "/:filename/edit" do
+get "/files/:filename/:version/edit" do
   validate_user
   headers["Content-Type"] = "text/html; charset=utf-8"
-  file_path = File.join(data_path, params[:filename])
-
-  @file = params[:filename]
-  cmsfile = CMSFile.new.read(File.read(file_path), file_path)
-  @content = cmsfile.latest_content_pair.last.strip
-  @version_time = cmsfile.latest_content_pair.first
+  @file_name = params[:filename]
+  file_path = File.join(file_dir(@file_name, params[:version]), @file_name)
+  @content = File.read(file_path)
   erb :edit
 end
 
-post "/:filename" do
+post "/files/:filename/clean_up_olds" do
   validate_user
-  headers["Content-Type"] = "text/html; charset=utf-8"
-  file_path = File.join(data_path, File.basename(params[:filename]))
-  @file = params[:filename]
-  content = File.read(file_path)
-  updated_content = params[:content]
-  if updated_content && updated_content != content
-    File.open(file_path, 'a') { |f| f.write(CMSFile.format_input(updated_content)) }
+  file_name = params[:filename]
+  latest_version = latest_version_of(file_name)
+  (1...latest_version.to_i).each do |version|
+    dir = file_dir(file_name, version)
+    FileUtils.rm_rf(dir)
   end
-  session[:message] = "#{params[:filename]} has been updated."
-  redirect "/#{@file}"
+  FileUtils.mv(file_dir(file_name, latest_version), file_dir(file_name, 1))
+  session[:message] = "Versions cleaned up."
+  redirect "/files/#{file_name}/1"
+end
+
+post "/files/:filename" do
+  validate_user
+  file_name = params[:filename]
+  content = params[:content]
+  validate_content_change(content, file_name)
+  new_version_number = (latest_version_of(file_name).to_i + 1).to_s
+  create_new_version(file_name, new_version_number, content)
+
+  session[:message] = "#{file_name} has been updated."
+  redirect "/files/#{file_name}/#{new_version_number}"
+end
+
+def validate_content_change(content, file_name)
+  old_content = File.read(File.join(data_path, "#{file_name}/#{latest_version_of(file_name)}/#{file_name}"))
+  if content == old_content
+    session[:message] = "No change was made, new version wasn't created."
+    status 422
+    redirect back
+  end
 end
 
 get "/files/new" do
   validate_user
-  headers["Content-Type"] = "text/html; charset=utf-8"
   erb :new
-end
-
-post "/files/create" do
-  validate_user
-  headers["Content-Type"] = "text/html; charset=utf-8"
-  new_name = params[:name].strip
-  if invalid_file_name?(new_name)
-    status 422
-    erb :new
-  else
-    file_path = File.join(data_path, new_name)
-    CMSFile.initialize_empty_file(file_path)
-    session[:message] = "#{new_name} was created."
-    redirect "/"
-  end
 end
 
 post "/:file_name/duplicate" do
@@ -90,10 +106,11 @@ post "/:file_name/duplicate" do
   file_name = params[:file_name]
   existed_files = Dir.children(data_path)
   if existed_files.include?(file_name)
+    versions_and_contents = extract_version_and_content(file_name)
     new_file_name = file_name.sub(/\./, "_dup.")
-    old_file_path = File.join(data_path, file_name)
-    new_file_path = File.join(data_path, new_file_name)
-    File.open(new_file_path, 'w+') { |f| f.write(File.read(old_file_path)) }
+    versions_and_contents.each do |version, content|
+      create_new_version(new_file_name, version, content)
+    end
     session[:message] = "A duplication of #{file_name}(#{new_file_name}) was created."
   else
     session[:message] = "#{file_name} is not a valid file name"
@@ -107,7 +124,7 @@ post "/:file_name/delete" do
   existed_files = Dir.children(data_path)
   if existed_files.include?(file_name)
     file_path = File.join(data_path, file_name)
-    File.delete(file_path)
+    FileUtils.rm_rf(file_path)
     session[:message] = "#{file_name} was deleted"
   else
     session[:message] = "#{file_name} is not a valid file name"
@@ -209,23 +226,13 @@ def markdown_to_html(content)
   markdown.render(content)
 end
 
-def load_file_content(file_path, version)
-  filetype = File.extname(params[:filename])
+def load_file_content(file_path)
+  filetype = File.extname(file_path)
   content = File.read(file_path)
-  cmsfile = CMSFile.new.read(content, file_path)
-  validate_version(version, cmsfile)
-  if filetype == '.md'
-    md_contents = cmsfile.contents.map { |t, text| [t, markdown_to_html(text)] }.to_h
-    cmsfile.contents = md_contents
-  end
-  cmsfile
-end
-
-def validate_version(version, cmsfile)
-  timestamps = cmsfile.contents.keys
-  unless timestamps.include?(version) || ['unspecified', 'all'].include?(version)
-    session[:message] = "Version #{version} does not exist."
-    redirect "/"
+  if filetype == '.txt'
+    content
+  elsif filetype == '.md'
+    markdown_to_html(content)
   end
 end
 
@@ -291,4 +298,28 @@ end
 
 def session
   last_request.env["rack.session"]
+end
+
+def create_new_version(file_name, version, content)
+  dir = file_dir(file_name, version)
+  FileUtils.mkdir_p(dir)
+  file_path = File.join(dir, file_name)
+  File.open(file_path, 'w+') { |f| f.write(content) }
+end
+
+def file_dir(file_name, version)
+  File.join(data_path, "/#{file_name}/#{version}")
+end
+
+def latest_version_of(file_name)
+  versions = Dir.children(File.join(data_path, file_name))
+  versions.max_by { |v| v.to_i }
+end
+
+def extract_version_and_content(file_name)
+  versions = Dir.children(File.join(data_path, file_name))
+  versions.each_with_object(Hash.new) do |v, hash|
+    content = File.read(File.join(data_path, "#{file_name}/#{v}/#{file_name}"))
+    hash[v] = content
+  end
 end

@@ -46,3 +46,10 @@ ul#doc_list {
   font-size: 0.6em;
   color: orange;
 }
+
+.version_list {
+  color: gray;
+  margin-top: 1em;
+  padding-left: 5px;
+  border-left: 3px solid lightgray;
+}

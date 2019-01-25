@@ -1,0 +1,3 @@
+create_document('about.md')
+    create_document('change.txt')
+    create_document('history.txt')

@@ -1,0 +1,17 @@
+<%= @content %>
+
+<div class="version_list">
+  <span>Versions: </span>
+  <% @versions.each do |version| %>
+    <a href="/files/<%= params[:filename]%>/<%= version %>"><%= version %></a>
+  <% end %>
+</div>
+
+<% if latest_version_of(params[:filename]) != '1'%>
+  <div class="clean_up_olds">
+    <form action="/files/<%= params[:filename]%>/clean_up_olds" method="post">
+      <button type="submit">Clean up old versions</button>
+      <span><small><em>(only the latest version will be kept.)</em></small></span>
+    </form>
+  </div>
+<% end %>

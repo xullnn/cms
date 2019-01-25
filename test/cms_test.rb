@@ -23,7 +23,10 @@ class TestApp < Minitest::Test
   end
 
   def create_document(name, content = "")
-    File.open(File.join(data_path, name), 'w') do |file|
+    new_dir = File.join(data_path, "#{name}/1/")
+    FileUtils.mkdir_p(new_dir)
+
+    File.open(File.join(new_dir, name), 'w') do |file|
       file.write(content)
     end
   end
@@ -51,27 +54,16 @@ class TestApp < Minitest::Test
     end
   end
 
-  def test_history_page
-    create_document('history.txt', "2003 - Ruby 1.8 released.")
-
-    get "/history.txt"
-    assert_equal 200, last_response.status
-    assert_equal "text/html; charset=utf-8", last_response["Content-Type"]
-    file_path = File.join(data_path, "history.txt")
-    body_contents = last_response.body.split("\n\n").map(&:strip)
-    assert_includes last_response.body, "2003 - Ruby 1.8 released."
-  end
-
   def test_redirection_for_invalid_file_request
     wrong_file_name = "non-existent.txt"
-    get "/#{wrong_file_name}"
+    get "/files/#{wrong_file_name}/1"
     assert_equal 302, last_response.status
     assert_equal "non-existent.txt does not exist.", session[:message]
   end
 
   def test_markdown_rendering
     create_document("about.md", "## Testing markdown format")
-    get "/about.md"
+    get "/files/about.md/1"
     assert_equal 200, last_response.status
     assert_equal "text/html; charset=utf-8", last_response["Content-Type"]
     assert_includes last_response.body, "<h2>Testing markdown format</h2>"
@@ -80,10 +72,10 @@ class TestApp < Minitest::Test
   def test_edit_file
     create_document("change.txt", "original_content")
 
-    get "/change.txt/edit"
+    get "/files/change.txt/1/edit"
     action_denied
 
-    get "/change.txt/edit", {}, admin_session
+    get "/files/change.txt/1/edit", {}, admin_session
 
     assert_equal 200, last_response.status
     assert_includes last_response.body, "original_content"
@@ -92,11 +84,14 @@ class TestApp < Minitest::Test
   def test_update_file
     create_document("change.txt", "original_content")
 
-    post "/change.txt", content: "new content addedxx"
+    post "/files/change.txt", content: "new content addedxx"
     action_denied
 
-    get "/change.txt/edit", {}, admin_session
-    post "/change.txt", content: "new content added"
+    post "/files/change.txt", {content: "original_content"}, admin_session
+    assert_equal 302, last_response.status
+    assert_equal "No change was made, new version wasn't created.", session[:message]
+
+    post "/files/change.txt", {content: "new content added"}, admin_session
     assert_equal 302, last_response.status
     assert_equal "change.txt has been updated.", session[:message]
   end
@@ -106,16 +101,18 @@ class TestApp < Minitest::Test
     action_denied
 
     get "/files/new", {}, admin_session
-    assert_includes last_response.body, "Add a new document"
+    assert_includes last_response.body, "Create new document"
   end
 
   def test_successful_creation_of_file
-    post "/files/create", name: "new_file.txt"
+    post "/files/create", name: "new_file.txt", content: "test new feature(dir based version control)"
     action_denied
 
-    post "/files/create", { name: "new_file.txt" }, admin_session
+    post "/files/create", { name: "new_file.txt", content: "test new feature(dir based version control)" }, admin_session
     assert_equal 302, last_response.status
 
+    file = File.join(data_path, "/new_file.txt/1/new_file.txt")
+    assert_includes File.read(file), "test new feature(dir based version control)"
     assert_equal "new_file.txt was created.", session[:message]
   end
 
@@ -307,18 +304,35 @@ class TestApp < Minitest::Test
   def test_version_control_for_files
     create_document 'sample.txt', "test version control"
 
-    get "/sample.txt"
-    assert_includes last_response.body, "Latest version"
-
-    post "/sample.txt", {content: "new content"}, admin_session
+    post "/files/sample.txt", {content: "new content"}, admin_session
     get last_response["Location"]
 
-    assert_equal 2, File.read(File.join(data_path, "/sample.txt")).scan(/\d{4}-.+\:\d{2}/).size
+    assert_equal 2, Dir.children(File.join(data_path, 'sample.txt')).size
   end
 
   def test_create_invalid_doc_type
     post "/files/create", { name: 'abc.png' }, admin_session
     assert_equal 422, last_response.status
     assert_includes last_response.body, ".png is not a valid type, only accept .md, .txt"
+  end
+
+  def test_existence_of_version_list_on_view_page
+    create_document 'sample.txt', "test version control"
+    5.times { |n| post "/files/sample.txt", {content: "new content #{n}"}, admin_session }
+
+    get last_response["Location"]
+    assert_includes last_response.body, "<a href=\"/files/sample.txt/3\">"
+    assert_includes last_response.body, "<a href=\"/files/sample.txt/6\">"
+  end
+
+  def test_clean_up_old_version
+    create_document 'sample.txt', "test version control"
+    post "/files/sample.txt/clean_up_olds"
+    action_denied
+
+    5.times { |n| post "/files/sample.txt", {content: "new content #{n}"}, admin_session }
+
+    post "/files/sample.txt/clean_up_olds", {}, admin_session
+    assert_equal ["1"], Dir.children(File.join(data_path, 'sample.txt'))
   end
 end
