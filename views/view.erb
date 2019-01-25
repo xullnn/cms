@@ -7,6 +7,10 @@
   <% end %>
 </div>
 
+<div class="edit_file">
+  <a href="/files/<%= params[:filename]%>/<%= params[:version] %>/edit">Edit(based on current version)</a>
+</div>
+
 <% if latest_version_of(params[:filename]) != '1'%>
   <div class="clean_up_olds">
     <form action="/files/<%= params[:filename]%>/clean_up_olds" method="post">

@@ -1,3 +1,2 @@
-create_document('about.md')
-    create_document('change.txt')
-    create_document('history.txt')
+Introducing a new 7-part video series with Josh Marinacci: How to make a virtual reality project in your browser with three.js & WebVR. These short tutorials show how to create an interactive 3d birthday card in WebVR that you can share and view in your desktop web browser, in a ...
+

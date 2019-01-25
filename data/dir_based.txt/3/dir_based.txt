@@ -1,4 +1,1 @@
-create_document('about.md')
-    create_document('change.txt')
-    create_document('history.txt')
-new content
+What kinds of tools do artists, developers, designers, entrepreneurs and creatives of all flavors need to be able to easily make augmented reality experiences? What kinds of apps can people build with tools we provide?
